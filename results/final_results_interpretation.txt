@@ -1,0 +1,17 @@
+
+Final ML Model Summary for FCBGA with Lid Project
+
+The best model for each output was selected based on the highest test R2 value.
+
+ Dataset                  Target               Model  Train_R2  Test_R2  Train_MSE  Test_MSE Model_Quality
+Assembly              ELK stress             XGBoost    0.9944   0.9767   0.026556  0.113426     Very good
+Assembly    Warpage Post UF cure             XGBoost    0.9939   0.9766   0.000002  0.000007     Very good
+Assembly Warpage post lid attach   Tuned Extra Trees    0.2490   0.1767   0.001246  0.002059          Weak
+     SJR              DeltaW_BGA Tuned Random Forest    0.7427   0.6350   0.010551  0.010761        Medium
+     SJR             DeltaW_bump Tuned Random Forest    0.4516   0.3446   0.000975  0.001209          Weak
+
+Key observations:
+1. ELK stress and warpage after UF cure were predicted with very good accuracy.
+2. Post-lid-attach warpage remained weak even after tuning.
+3. DeltaW_BGA improved after tuning and reached medium prediction quality.
+4. DeltaW_bump remained weak, suggesting that the current input variables may not fully explain bump-level reliability behavior.

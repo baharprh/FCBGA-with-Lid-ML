@@ -1,0 +1,12 @@
+Dataset,Target,Feature,Importance
+Assembly,ELK stress,Bump solder material_SAC105,0.37145991659496286
+Assembly,ELK stress,Bump solder height,0.2737161054412469
+Assembly,ELK stress,Bump solder material_SAC405,0.13760365092738755
+Assembly,ELK stress,Bulk silicon thickness,0.06047365551398014
+Assembly,ELK stress,Bump solder material_SAC205,0.054250406274059214
+Assembly,ELK stress,Substrate core thickness,0.03901848928198181
+Assembly,ELK stress,Bump solder material_SAC305,0.023770335564380705
+Assembly,ELK stress,"Substrate core (E, CTE)",0.02038783054286646
+Assembly,ELK stress,Lid foot width,0.008762670262809866
+Assembly,ELK stress,Lid thickness,0.00592575159250603
+Assembly,ELK stress,"UF (E, CTE)",0.004631188003818511

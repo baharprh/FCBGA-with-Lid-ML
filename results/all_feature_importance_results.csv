@@ -1,0 +1,64 @@
+Dataset,Target,Feature,Importance
+Assembly,ELK stress,Bump solder material_SAC105,0.37145991659496286
+Assembly,ELK stress,Bump solder height,0.2737161054412469
+Assembly,ELK stress,Bump solder material_SAC405,0.13760365092738755
+Assembly,ELK stress,Bulk silicon thickness,0.06047365551398014
+Assembly,ELK stress,Bump solder material_SAC205,0.054250406274059214
+Assembly,ELK stress,Substrate core thickness,0.03901848928198181
+Assembly,ELK stress,Bump solder material_SAC305,0.023770335564380705
+Assembly,ELK stress,"Substrate core (E, CTE)",0.02038783054286646
+Assembly,ELK stress,Lid foot width,0.008762670262809866
+Assembly,ELK stress,Lid thickness,0.00592575159250603
+Assembly,ELK stress,"UF (E, CTE)",0.004631188003818511
+Assembly,Warpage Post UF cure,Substrate core thickness,0.7841968459141659
+Assembly,Warpage Post UF cure,"Substrate core (E, CTE)",0.09014201386249736
+Assembly,Warpage Post UF cure,Bulk silicon thickness,0.06656593076381134
+Assembly,Warpage Post UF cure,Bump solder material_SAC105,0.03221321211033695
+Assembly,Warpage Post UF cure,Bump solder height,0.006918961669989564
+Assembly,Warpage Post UF cure,Bump solder material_SAC405,0.005567468143004505
+Assembly,Warpage Post UF cure,"UF (E, CTE)",0.004471595507888934
+Assembly,Warpage Post UF cure,Lid foot width,0.004317116421987822
+Assembly,Warpage Post UF cure,Lid thickness,0.0038438862328605866
+Assembly,Warpage Post UF cure,Bump solder material_SAC205,0.0009827406302805328
+Assembly,Warpage Post UF cure,Bump solder material_SAC305,0.0007802287431765248
+Assembly,Warpage post lid attach,Lid foot width,0.17890115284721222
+Assembly,Warpage post lid attach,Lid thickness,0.11866108962765066
+Assembly,Warpage post lid attach,Bulk silicon thickness,0.11859375923631582
+Assembly,Warpage post lid attach,Bump solder height,0.11609181039429115
+Assembly,Warpage post lid attach,"Substrate core (E, CTE)",0.10169743635993073
+Assembly,Warpage post lid attach,Substrate core thickness,0.08964369973864382
+Assembly,Warpage post lid attach,"UF (E, CTE)",0.08413112907159194
+Assembly,Warpage post lid attach,Bump solder material_SAC105,0.07245600819671486
+Assembly,Warpage post lid attach,Bump solder material_SAC205,0.043134580886159006
+Assembly,Warpage post lid attach,Bump solder material_SAC305,0.04242507538412217
+Assembly,Warpage post lid attach,Bump solder material_SAC405,0.03426425825736759
+SJR,DeltaW_BGA,Bump solder height,0.39723519518767997
+SJR,DeltaW_BGA,"UF (E, CTE)",0.17134172931240238
+SJR,DeltaW_BGA,Substrate core thickness,0.08690564681282283
+SJR,DeltaW_BGA,"Substrate core (E, CTE)",0.07784122139009213
+SJR,DeltaW_BGA,Lid foot width,0.041985509385441294
+SJR,DeltaW_BGA,Bulk silicon thickness,0.041433575905838634
+SJR,DeltaW_BGA,Lid thickness,0.03807641449790672
+SJR,DeltaW_BGA,Cu-pillar bump solder material_SAC305,0.029832383229817395
+SJR,DeltaW_BGA,Cu-pillar bump solder material_SAC105,0.02757257198418934
+SJR,DeltaW_BGA,BGA solder material_SAC305,0.019758848356179012
+SJR,DeltaW_BGA,BGA solder material_SAC405,0.015724193135242343
+SJR,DeltaW_BGA,BGA solder material_SAC105,0.015302259040086143
+SJR,DeltaW_BGA,Cu-pillar bump solder material_SAC205,0.014001240110803682
+SJR,DeltaW_BGA,Cu-pillar bump solder material_SAC405,0.012437721269328402
+SJR,DeltaW_BGA,BGA solder material_SAC205,0.0105514903821698
+SJR,DeltaW_bump,"Substrate core (E, CTE)",0.16038023085921968
+SJR,DeltaW_bump,Lid foot width,0.12244086149319569
+SJR,DeltaW_bump,BGA solder material_SAC105,0.10169585901544363
+SJR,DeltaW_bump,Substrate core thickness,0.10142614582377062
+SJR,DeltaW_bump,Bulk silicon thickness,0.089019698015332
+SJR,DeltaW_bump,Bump solder height,0.08822164420565765
+SJR,DeltaW_bump,Lid thickness,0.08120195613667122
+SJR,DeltaW_bump,"UF (E, CTE)",0.06966957597846084
+SJR,DeltaW_bump,Cu-pillar bump solder material_SAC205,0.06627725268587593
+SJR,DeltaW_bump,BGA solder material_SAC205,0.03940144228656067
+SJR,DeltaW_bump,Cu-pillar bump solder material_SAC405,0.019354327632318712
+SJR,DeltaW_bump,BGA solder material_SAC305,0.018599289997644618
+SJR,DeltaW_bump,Cu-pillar bump solder material_SAC305,0.0183493492928392
+SJR,DeltaW_bump,Cu-pillar bump solder material_SAC105,0.012099838690925105
+SJR,DeltaW_bump,BGA solder material_SAC405,0.011862527886084584

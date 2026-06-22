@@ -1,0 +1,12 @@
+Dataset,Target,Feature,Importance
+Assembly,Warpage post lid attach,Lid foot width,0.17890115284721222
+Assembly,Warpage post lid attach,Lid thickness,0.11866108962765066
+Assembly,Warpage post lid attach,Bulk silicon thickness,0.11859375923631582
+Assembly,Warpage post lid attach,Bump solder height,0.11609181039429115
+Assembly,Warpage post lid attach,"Substrate core (E, CTE)",0.10169743635993073
+Assembly,Warpage post lid attach,Substrate core thickness,0.08964369973864382
+Assembly,Warpage post lid attach,"UF (E, CTE)",0.08413112907159194
+Assembly,Warpage post lid attach,Bump solder material_SAC105,0.07245600819671486
+Assembly,Warpage post lid attach,Bump solder material_SAC205,0.043134580886159006
+Assembly,Warpage post lid attach,Bump solder material_SAC305,0.04242507538412217
+Assembly,Warpage post lid attach,Bump solder material_SAC405,0.03426425825736759
