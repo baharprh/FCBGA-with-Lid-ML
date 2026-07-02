@@ -1,0 +1,45 @@
+{
+  "objective_columns": [
+    "Obj_DeltaW_BGA",
+    "Obj_DeltaW_bump",
+    "Obj_ELK_stress",
+    "Obj_Warpage_Post_UF_cure",
+    "Obj_Warpage_post_lid_atach"
+  ],
+  "sense": {
+    "Obj_DeltaW_BGA": "min",
+    "Obj_DeltaW_bump": "min",
+    "Obj_ELK_stress": "min",
+    "Obj_Warpage_Post_UF_cure": "min",
+    "Obj_Warpage_post_lid_atach": "min"
+  },
+  "weights": {
+    "Obj_DeltaW_BGA": 0.2,
+    "Obj_DeltaW_bump": 0.2,
+    "Obj_ELK_stress": 0.2,
+    "Obj_Warpage_Post_UF_cure": 0.2,
+    "Obj_Warpage_post_lid_atach": 0.2
+  },
+  "Q": {
+    "Obj_DeltaW_BGA": 0.0026541907340288163,
+    "Obj_DeltaW_bump": 0.02926991581916809,
+    "Obj_ELK_stress": 0.3253445863723755,
+    "Obj_Warpage_Post_UF_cure": 0.003649275563657284,
+    "Obj_Warpage_post_lid_atach": 0.011729351803660394
+  },
+  "P": {
+    "Obj_DeltaW_BGA": 0.007962572202086448,
+    "Obj_DeltaW_bump": 0.08780974745750426,
+    "Obj_ELK_stress": 0.9760337591171264,
+    "Obj_Warpage_Post_UF_cure": 0.010947826690971852,
+    "Obj_Warpage_post_lid_atach": 0.035188055410981176
+  },
+  "V": {
+    "Obj_DeltaW_BGA": 0.015925144404172895,
+    "Obj_DeltaW_bump": 0.17561949491500853,
+    "Obj_ELK_stress": 1.9520675182342528,
+    "Obj_Warpage_Post_UF_cure": 0.021895653381943703,
+    "Obj_Warpage_post_lid_atach": 0.07037611082196235
+  },
+  "notes": "If WEIGHTS/Q/P/V not provided, auto-scaled from objective ranges."
+}
