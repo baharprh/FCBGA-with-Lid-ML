@@ -21,7 +21,9 @@ FIGURES_DIR.mkdir(exist_ok=True)
 # ------------------------------------------------------------
 # Load final best model summary
 # ------------------------------------------------------------
-summary_file = RESULTS_DIR / "final_best_model_summary_after_tuning.csv"
+summary_file = RESULTS_DIR / "unified_best_model_summary.csv"
+if not summary_file.exists():
+    summary_file = RESULTS_DIR / "final_best_model_summary_after_tuning.csv"
 df = pd.read_csv(summary_file)
 
 # ------------------------------------------------------------
@@ -87,18 +89,25 @@ print(f"Final Test R2 plot saved to: {figure_file}")
 # ------------------------------------------------------------
 # Create a simple text summary file
 # ------------------------------------------------------------
+very_good = report_df[report_df["Model_Quality"] == "Very good"]["Target"].tolist()
+medium = report_df[report_df["Model_Quality"] == "Medium"]["Target"].tolist()
+weak = report_df[report_df["Model_Quality"] == "Weak"]["Target"].tolist()
+
 summary_text = f"""
 Final ML Model Summary for FCBGA with Lid Project
 
-The best model for each output was selected based on the highest test R2 value.
+The best model for each output was selected using the unified pipeline in
+scripts/16_unified_best_models.py. Cleaned dataset-specific features were used,
+constant columns were removed, and model families were chosen from the best
+results across the original pipeline, UPDATE V1, and updatev2_depth.
 
 {report_df.to_string(index=False)}
 
 Key observations:
-1. ELK stress and warpage after UF cure were predicted with very good accuracy.
-2. Post-lid-attach warpage remained weak even after tuning.
-3. DeltaW_BGA improved after tuning and reached medium prediction quality.
-4. DeltaW_bump remained weak, suggesting that the current input variables may not fully explain bump-level reliability behavior.
+1. Very good prediction quality was achieved for: {", ".join(very_good) if very_good else "none"}.
+2. Medium prediction quality was achieved for: {", ".join(medium) if medium else "none"}.
+3. Weak prediction quality remained for: {", ".join(weak) if weak else "none"}.
+4. Weak targets may need additional physics-based features or more simulation data.
 """
 
 text_file = RESULTS_DIR / "final_results_interpretation.txt"

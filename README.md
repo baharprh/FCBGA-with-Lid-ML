@@ -1,16 +1,16 @@
 # FCBGA with Lid Project
 
-Thermo-mechanical analysis and machine-learning-based prediction for an FCBGA package with lid.
+Thermo-mechanical analysis and machine-learning-based co-design for an FCBGA package with lid.
 
 ## Overview
 
-This project builds a reproducible ML pipeline from raw simulation data through exploratory analysis, model training (Random Forest and XGBoost), hyperparameter tuning, and final reporting. Five target outputs are modeled across assembly and SJR datasets.
+This project builds a reproducible workflow from raw simulation data through surrogate modeling, multi-objective optimization (NSGA-II), Net Flow Method (NFM) ranking, and champion design export — aligned with thermo-mechanical co-design manuscripts.
 
 ## Dataset
 
 - **Source file:** `2D_assembly_lid_300_v4.xlsx` (sheet: `2D_assembly_lid_300`)
 - **Design points:** 300
-- **Processed data:** cleaned and merged CSV files in `data/`
+- **Processed data:** cleaned CSV files in `data/`
 
 Place the original Excel file in `data/` to re-run from step 1, or use the existing CSVs to start from later pipeline steps.
 
@@ -40,10 +40,11 @@ Place the original Excel file in `data/` to re-run from step 1, or use the exist
 
 ```
 FCBGA_with_Lid_Project/
-├── data/       # Raw and processed datasets
-├── figures/    # Exploratory and model plots
-├── results/    # Metrics, feature importance, summaries
-├── scripts/    # Pipeline scripts (01–15)
+├── data/                  # Raw and processed datasets
+├── figures/               # Plots (codesign_latest/ = stable co-design figures)
+├── results/               # Metrics and optimization outputs
+│   └── codesign_latest/   # Stable co-design results (updated each full run)
+├── scripts/               # Pipeline scripts (01–16 + integrated workflows)
 └── README.md
 ```
 
@@ -55,9 +56,34 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-## Pipeline
+## Recommended workflows
 
-Run scripts in order from the project root:
+### Full co-design (term paper — ML + optimization)
+
+```bash
+python scripts/fcbga_full_codesign_pipeline.py
+```
+
+Implements: data cleaning, fixed-depth RF/XGB surrogates, validation/learning curves, correlation heatmaps, NSGA-II (pop=150, gen=100), NFM ranking, RadViz, champion export, and nearest-FEA validation proxy.
+
+Stable outputs are copied to `results/codesign_latest/` and `figures/codesign_latest/`.
+
+### Surrogate-only (validation plots, no optimization)
+
+```bash
+python scripts/fcbga_combined_surrogate_pipeline.py
+```
+
+### Highest hold-out R² (tuned models per target)
+
+```bash
+python scripts/16_unified_best_models.py
+python scripts/15_create_report_results.py
+```
+
+Writes `results/unified_best_model_summary.csv` — do **not** confuse with co-design fixed-depth summaries.
+
+### Step-by-step pipeline (01–16)
 
 | Step | Script | Purpose |
 |------|--------|---------|
@@ -67,34 +93,48 @@ Run scripts in order from the project root:
 | 04 | `scripts/04_merge_datasets.py` | Merge assembly and SJR data |
 | 05 | `scripts/05_validate_and_prepare_combined_data.py` | Validate combined dataset |
 | 06 | `scripts/06_merge_by_design_variables.py` | Merge on design variables |
-| 07 | `scripts/07_train_assembly_models.py` | Train assembly Random Forest models |
-| 08 | `scripts/08_train_sjr_models.py` | Train SJR Random Forest models |
-| 09 | `scripts/09_create_summary_table.py` | Summarize model performance |
-| 10 | `scripts/10_feature_importance.py` | Feature importance analysis |
-| 11 | `scripts/11_train_xgboost_models.py` | Train XGBoost models |
-| 12 | `scripts/12_compare_rf_xgboost.py` | Compare RF vs XGBoost |
-| 13 | `scripts/13_tune_weak_models.py` | Hyperparameter tuning for weak targets |
-| 14 | `scripts/14_final_best_model_summary.py` | Select best model per target |
-| 15 | `scripts/15_create_report_results.py` | Generate report-ready summary |
-
-Example:
-
-```bash
-python scripts/01_data_check.py
-```
+| 07–15 | `scripts/07`–`15` | RF/XGB training, tuning, reporting |
+| 16 | `scripts/16_unified_best_models.py` | Best tuned model per target |
 
 ## Key results
 
-Best models by test R² (see `results/final_results_interpretation.txt`):
+### Tuned surrogates (`results/unified_best_model_summary.csv`)
 
 | Target | Best model | Test R² | Quality |
 |--------|------------|---------|---------|
-| ELK stress | XGBoost | 0.977 | Very good |
-| Warpage Post UF cure | XGBoost | 0.977 | Very good |
+| ELK stress | XGBoost | 0.982 | Very good |
+| Warpage Post UF cure | XGBoost | 0.972 | Very good |
 | Warpage post lid attach | Tuned Extra Trees | 0.177 | Weak |
 | DeltaW_BGA | Tuned Random Forest | 0.635 | Medium |
 | DeltaW_bump | Tuned Random Forest | 0.345 | Weak |
 
+### Co-design run (`results/codesign_latest/`)
+
+Fixed-depth surrogates used for optimization (pop=150, gen=100):
+
+| Target | Test R² | Quality |
+|--------|---------|---------|
+| ELK stress | 0.984 | Very good |
+| Warpage Post UF cure | 0.966 | Very good |
+| Warpage post lid attach | 0.166 | Weak |
+| DeltaW_BGA | 0.579 | Medium |
+| DeltaW_bump | 0.328 | Weak |
+
+**Champion design (NFM rank 1):** see `results/codesign_latest/champion_design.csv`
+
+| Parameter | Value |
+|-----------|-------|
+| Bulk silicon thickness | 0.75 mm |
+| Bump solder height | 0.06 mm |
+| Substrate core thickness | 0.8 mm |
+| Lid foot width | 9 mm |
+| Lid thickness | 2.0 mm |
+| Cu-pillar / BGA solder | SAC405 / SAC305 |
+
+Validation proxy vs nearest FEA simulation (Design_ID 145): `results/codesign_latest/champion_fea_validation_proxy.csv`
+
+> For publication, re-run the champion in ANSYS instead of relying on the nearest-design proxy.
+
 ## Author
 
-[baharprh](https://github.com/baharprh)
+[baharprh](https://github.com/baharprh) — [FCBGA-with-Lid-ML](https://github.com/baharprh/FCBGA-with-Lid-ML)

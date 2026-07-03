@@ -9,6 +9,16 @@ venv/
 # Jupyter
 .ipynb_checkpoints/
 
+# Large local reference PDFs (keep locally; not required for pipeline)
+ref/
+
+# Timestamped intermediate runs (canonical copies live in codesign_latest/)
+results/codesign_run_*/
+results/surrogate_run_*/
+figures/codesign_run_*/
+figures/surrogate_run_*/
+results/_manuscript_extract.txt
+
 # OS / editor
 .DS_Store
 Thumbs.db
