@@ -148,6 +148,3 @@ Validation proxy vs nearest FEA simulation (Design_ID 145): `results/codesign_la
 
 > For publication, re-run the champion in ANSYS instead of relying on the nearest-design proxy.
 
-## Author
-
-[baharprh](https://github.com/baharprh) — [FCBGA-with-Lid-ML](https://github.com/baharprh/FCBGA-with-Lid-ML)
