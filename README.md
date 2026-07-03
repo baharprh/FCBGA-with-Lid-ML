@@ -146,5 +146,3 @@ Fixed-depth surrogates used for optimization (pop=150, gen=100):
 
 Validation proxy vs nearest FEA simulation (Design_ID 145): `results/codesign_latest/champion_fea_validation_proxy.csv`
 
-> For publication, re-run the champion in ANSYS instead of relying on the nearest-design proxy.
-
