@@ -10,10 +10,12 @@ End-to-end workflow aligned with the example thermo-mechanical co-design manuscr
   2. Merge paired simulation rows (Design_ID) for correlation analysis
   3. Train fixed-depth RF / XGB surrogates per target (dataset-specific features)
   4. Validation curves, learning curves, parity plots, feature importance
-  5. Objective correlation heatmap (Pearson)
-  6. NSGA-II multi-objective optimization on discrete design variables
-  7. Net Flow Method (NFM) ranking of Pareto designs
-  8. Champion design export + nearest-FEA validation proxy table
+  5. Combined 5×4 actual-vs-predicted and learning-curve grids (RF/XGB)
+  6. Objective correlation heatmap (Pearson)
+  7. NSGA-II multi-objective optimization on discrete design variables
+  8. Net Flow Method (NFM) ranking + histogram and pairwise NFM plots
+  9. RadViz (per objective + combined with champion marker)
+ 10. Champion design export + nearest-FEA validation proxy table
 
 Run:
     python scripts/fcbga_full_codesign_pipeline.py
@@ -35,6 +37,7 @@ from pathlib import Path
 import matplotlib
 
 matplotlib.use("Agg")
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -110,6 +113,8 @@ MERGE_DESIGN_COLS = [
 ]
 
 VALIDATION_CV_ROWS: list[dict] = []
+ALL_PRED_DATA: list[dict] = []
+ALL_LC_DATA: list[dict] = []
 
 
 # =============================================================================
@@ -271,7 +276,7 @@ def save_diagnostics(pipe, X_train, X_test, y_train, y_test, target, model_name,
         sweep.set_params(regressor__max_depth=d)
         tr, te = validation_curve(
             sweep, X_train, y_train, param_name="regressor__max_depth",
-            param_range=[d], cv=CV_FOLDS, scoring="r2", n_jobs=-1,
+            param_range=[d], cv=CV_FOLDS, scoring="r2", n_jobs=1,
         )
         tr_m.append(tr.mean())
         te_m.append(te.mean())
@@ -319,7 +324,37 @@ def train_target(df: pd.DataFrame, target: str, dataset: str) -> dict:
             target, name,
         )
         pipe.fit(X_tr, y_tr)
+        y_tr_pred = pipe.predict(X_tr)
         y_pr = pipe.predict(X_te)
+        model_type = "RandomForestRegressor" if name == "Random Forest" else "XGBRegressor"
+        ALL_PRED_DATA.append(
+            {
+                "target_name": target,
+                "dataset": dataset,
+                "model_type": model_type,
+                "y_train_true": np.asarray(y_tr),
+                "y_train_pred": np.asarray(y_tr_pred),
+                "y_test_true": np.asarray(y_te),
+                "y_test_pred": np.asarray(y_pr),
+            }
+        )
+        train_sizes = np.linspace(0.2, 1.0, 5)
+        for scoring, metric_type in [("r2", "r2"), ("neg_mean_squared_error", "mse")]:
+            sizes, tr_sc, te_sc = learning_curve(
+                pipe, X_tr, y_tr, cv=CV_FOLDS, scoring=scoring,
+                train_sizes=train_sizes, n_jobs=1,
+            )
+            ALL_LC_DATA.append(
+                {
+                    "target_name": target,
+                    "dataset": dataset,
+                    "model_type": model_type,
+                    "metric_type": metric_type,
+                    "train_sizes": sizes,
+                    "train_scores": tr_sc,
+                    "test_scores": te_sc,
+                }
+            )
         row = {
             "Dataset": dataset,
             "Target": target,
@@ -381,6 +416,233 @@ def plot_corr_heatmap(master: pd.DataFrame):
         fig.savefig(folder / "objective_correlation_simulation_data.png", dpi=300)
     plt.close(fig)
     corr.to_csv(RUN_DIR / "objective_correlation_matrix.csv")
+
+
+# =============================================================================
+# PROFESSOR-STYLE COMBINED FIGURES (5×4 grids, NFM, RadViz)
+# =============================================================================
+
+
+def _safe_filename(name: str) -> str:
+    return "".join(c if c.isalnum() or c in "-_" else "_" for c in str(name))
+
+
+def _plot_single_actual_vs_predicted(ax, y_true, y_pred, dataset_name_str: str):
+    if y_true is None or y_pred is None:
+        ax.text(0.5, 0.5, "Data N/A", ha="center", va="center", transform=ax.transAxes)
+        return
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+    mask = ~np.isnan(y_true) & ~np.isnan(y_pred)
+    y_true_clean, y_pred_clean = y_true[mask], y_pred[mask]
+    if len(y_true_clean) == 0:
+        ax.text(0.5, 0.5, "No valid data", ha="center", va="center", transform=ax.transAxes)
+        return
+    ax.scatter(y_true_clean, y_pred_clean, alpha=0.6, edgecolors="k", s=40)
+    lo = min(y_true_clean.min(), y_pred_clean.min())
+    hi = max(y_true_clean.max(), y_pred_clean.max())
+    margin = (hi - lo) * 0.05 if hi > lo else 0.1
+    ax.plot([lo - margin, hi + margin], [lo - margin, hi + margin], "r--", lw=1.5)
+    ax.set_xlabel("Actual")
+    ax.set_ylabel("Predicted")
+    ax.set_title(dataset_name_str, fontsize=10)
+    ax.grid(True, linestyle="--", alpha=0.4)
+
+
+def generate_combined_actual_vs_predicted_grid(all_pred_data: list[dict], output_path: Path):
+    """5×4 grid: RF/XGB × train/test for all five targets."""
+    n_targets = len(ALL_TARGETS)
+    fig, axs = plt.subplots(n_targets, 4, figsize=(20, 4 * n_targets))
+    if n_targets == 1:
+        axs = axs.reshape(1, -1)
+    columns = [
+        ("RandomForestRegressor", "train", "RF | Train"),
+        ("XGBRegressor", "train", "XGB | Train"),
+        ("RandomForestRegressor", "test", "RF | Test"),
+        ("XGBRegressor", "test", "XGB | Test"),
+    ]
+    for row, target in enumerate(ALL_TARGETS):
+        for col, (model_type, split, col_title) in enumerate(columns):
+            ax = axs[row, col]
+            entry = next(
+                (d for d in all_pred_data if d["target_name"] == target and d["model_type"] == model_type),
+                None,
+            )
+            if entry is None:
+                ax.axis("off")
+                continue
+            y_true = entry[f"y_{split}_true"]
+            y_pred = entry[f"y_{split}_pred"]
+            _plot_single_actual_vs_predicted(ax, y_true, y_pred, col_title)
+            if col == 0:
+                ax.set_ylabel(f"{target}\nPredicted", fontsize=9)
+    fig.suptitle("Actual vs Predicted — All Targets (RF / XGB, Train / Test)", fontweight="bold")
+    fig.tight_layout(rect=[0, 0, 1, 0.98])
+    fig.savefig(output_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved combined parity grid -> {output_path}")
+
+
+def generate_combined_learning_curves_grid(all_lc_data: list[dict], output_path: Path):
+    """5×4 grid: RF/XGB × R²/MSE learning curves for all five targets."""
+    n_targets = len(ALL_TARGETS)
+    fig, axs = plt.subplots(n_targets, 4, figsize=(20, 4 * n_targets))
+    if n_targets == 1:
+        axs = axs.reshape(1, -1)
+    columns = [
+        ("RandomForestRegressor", "r2", "RF | R²"),
+        ("RandomForestRegressor", "mse", "RF | MSE"),
+        ("XGBRegressor", "r2", "XGB | R²"),
+        ("XGBRegressor", "mse", "XGB | MSE"),
+    ]
+    for row, target in enumerate(ALL_TARGETS):
+        for col, (model_type, metric_type, col_title) in enumerate(columns):
+            ax = axs[row, col]
+            entry = next(
+                (
+                    d
+                    for d in all_lc_data
+                    if d["target_name"] == target
+                    and d["model_type"] == model_type
+                    and d["metric_type"] == metric_type
+                ),
+                None,
+            )
+            if entry is None:
+                ax.axis("off")
+                continue
+            train_sizes = entry["train_sizes"]
+            tr = entry["train_scores"]
+            te = entry["test_scores"]
+            if metric_type == "mse":
+                tr, te = -tr, -te
+            tr_m, tr_s = tr.mean(1), tr.std(1)
+            te_m, te_s = te.mean(1), te.std(1)
+            ax.plot(train_sizes, tr_m, "o-", color="darkorange", label="Train", lw=1.5)
+            ax.fill_between(train_sizes, tr_m - tr_s, tr_m + tr_s, alpha=0.15, color="darkorange")
+            ax.plot(train_sizes, te_m, "o-", color="navy", label="CV", lw=1.5)
+            ax.fill_between(train_sizes, te_m - te_s, te_m + te_s, alpha=0.15, color="navy")
+            ax.set_title(col_title, fontsize=10)
+            ax.set_xlabel("Training examples")
+            ax.set_ylabel("R²" if metric_type == "r2" else "MSE")
+            ax.grid(True, linestyle="--", alpha=0.4)
+            if row == 0 and col == 0:
+                ax.legend(fontsize=8)
+            if col == 0:
+                ax.set_ylabel(f"{target}\n" + ("R²" if metric_type == "r2" else "MSE"), fontsize=9)
+    fig.suptitle("Learning Curves — All Targets (RF / XGB, R² / MSE)", fontweight="bold")
+    fig.tight_layout(rect=[0, 0, 1, 0.98])
+    fig.savefig(output_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved combined learning-curve grid -> {output_path}")
+
+
+def plot_nfm_histogram(scores: np.ndarray, output_path: Path):
+    fig, ax = plt.subplots(figsize=(7, 5))
+    ax.hist(scores, bins="auto", edgecolor="k", alpha=0.75)
+    ax.set_title("Net Flow Scores Histogram", fontweight="bold")
+    ax.set_xlabel("Net Flow Score")
+    ax.set_ylabel("Frequency")
+    ax.grid(True, linestyle="--", alpha=0.5)
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=300)
+    plt.close(fig)
+    print(f"Saved NFM histogram -> {output_path}")
+
+
+def plot_nfm_pairwise_combined(
+    obj_df: pd.DataFrame,
+    obj_cols: list[str],
+    ranks: np.ndarray,
+    output_path: Path,
+    champion_idx: int = 0,
+):
+    """Combined 2×3 NFM pairwise scatter with rank buckets and champion marker."""
+    order = np.argsort(ranks)
+    n = len(order)
+    cut10 = max(n // 10, 1)
+    cut25 = max(n // 4, 1)
+    cut50 = max(n // 2, 1)
+    buckets = {
+        "Bottom 50%": set(order[cut50:]),
+        "Top 25-50%": set(order[cut25:cut50]),
+        "Top 10-25%": set(order[cut10:cut25]),
+        "Top 10%": set(order[:cut10]),
+    }
+    colors = {"Bottom 50%": "black", "Top 25-50%": "blue", "Top 10-25%": "green", "Top 10%": "cyan"}
+    draw_order = ["Bottom 50%", "Top 25-50%", "Top 10-25%", "Top 10%"]
+    champ_color = next((colors[l] for l, s in buckets.items() if champion_idx in s), "red")
+
+    pairs = list(itertools.combinations(range(len(obj_cols)), 2))[:6]
+    fig, axs = plt.subplots(2, 3, figsize=(18, 10))
+    for ax, (i, j) in zip(axs.ravel(), pairs):
+        xcol, ycol = obj_cols[i], obj_cols[j]
+        for label in draw_order:
+            idxs = list(buckets[label])
+            if idxs:
+                ax.scatter(
+                    obj_df.iloc[idxs][xcol], obj_df.iloc[idxs][ycol],
+                    s=30, color=colors[label], alpha=0.85,
+                    label=label if ax is axs.ravel()[0] else None,
+                )
+        ax.scatter(
+            obj_df.iloc[champion_idx][xcol], obj_df.iloc[champion_idx][ycol],
+            s=160, marker="^", facecolors="none", edgecolors="red", linewidths=1.8,
+            label="Champion" if ax is axs.ravel()[0] else None, zorder=5,
+        )
+        ax.scatter(
+            obj_df.iloc[champion_idx][xcol], obj_df.iloc[champion_idx][ycol],
+            s=40, color=champ_color, edgecolors="k", linewidths=0.6, zorder=6,
+        )
+        ax.set_xlabel(xcol.replace("Obj_", ""), fontsize=10)
+        ax.set_ylabel(ycol.replace("Obj_", ""), fontsize=10)
+        ax.grid(True, linestyle="--", alpha=0.5)
+    handles, labels = axs.ravel()[0].get_legend_handles_labels()
+    if handles:
+        fig.legend(handles, labels, loc="upper center", ncol=5, fontsize=10, frameon=True)
+    fig.tight_layout(rect=[0, 0, 1, 0.92])
+    fig.savefig(output_path, dpi=300)
+    plt.close(fig)
+    print(f"Saved NFM pairwise scatter -> {output_path}")
+
+
+def plot_individual_radviz(
+    xy: np.ndarray,
+    pareto_f: np.ndarray,
+    obj_names: list[str],
+    champion_idx: int | None = None,
+):
+    """One RadViz figure per objective (professor-style)."""
+    if xy.shape[0] == 0 or pareto_f.shape[1] < 2:
+        return
+    m = pareto_f.shape[1]
+    angles = 2 * np.pi * np.arange(m) / m
+    anchors = np.stack([np.cos(angles), np.sin(angles)], axis=1)
+    poly_x = np.append(anchors[:, 0], anchors[0, 0])
+    poly_y = np.append(anchors[:, 1], anchors[0, 1])
+    for i, name in enumerate(obj_names):
+        fig, ax = plt.subplots(figsize=(9, 9))
+        sc = ax.scatter(xy[:, 0], xy[:, 1], c=pareto_f[:, i], cmap="viridis", s=60, ec="k", alpha=0.7)
+        ax.plot(poly_x, poly_y, "--", c="r", lw=1.5)
+        ax.scatter(anchors[:, 0], anchors[:, 1], marker="^", c="r", s=100)
+        for j, lab in enumerate(obj_names):
+            ax.text(
+                anchors[j, 0] * 0.85, anchors[j, 1] * 0.85, lab,
+                ha="center", va="center", fontsize=8,
+                bbox=dict(facecolor="white", edgecolor="none", alpha=0.8),
+            )
+        if champion_idx is not None and 0 <= champion_idx < len(xy):
+            ax.scatter(
+                xy[champion_idx, 0], xy[champion_idx, 1],
+                s=200, facecolors="none", edgecolors="gold", lw=2, label="Champion",
+            )
+        ax.set_title(f"RadViz (color by {name})")
+        ax.set_aspect("equal")
+        plt.colorbar(sc, ax=ax, location="bottom", shrink=0.85, pad=0.12)
+        fig.tight_layout()
+        fig.savefig(RUN_FIG / f"radviz_opt_{_safe_filename(name)}.png", dpi=300)
+        plt.close(fig)
+    print(f"Saved {len(obj_names)} individual RadViz plots -> {RUN_FIG}")
 
 
 # =============================================================================
@@ -623,7 +885,17 @@ def run_optimization(models: list[dict], master: pd.DataFrame):
 
     champion = nfm_sorted.iloc[0]
     champion.to_frame().T.to_csv(RUN_DIR / "champion_design.csv", index=False)
-    plot_radviz_panels(xy_radviz, pareto_F, ALL_TARGETS, champion_idx=int(order[0]))
+    champ_idx = int(order[0])
+    plot_radviz_panels(xy_radviz, pareto_F, ALL_TARGETS, champion_idx=None)
+    plot_radviz_panels(xy_radviz, pareto_F, ALL_TARGETS, champion_idx=champ_idx)
+    plot_individual_radviz(xy_radviz, pareto_F, ALL_TARGETS, champion_idx=champ_idx)
+
+    obj_cols = [f"Obj_{t}" for t in ALL_TARGETS]
+    plot_nfm_histogram(scores, RUN_FIG / "nfm_scores_histogram.png")
+    plot_nfm_pairwise_combined(
+        obj_df, obj_cols, -scores, RUN_FIG / "combined_nfm_pairwise_scatter.png",
+        champion_idx=champ_idx,
+    )
 
     # FEA validation proxy: nearest simulated design in master table
     champ_design = champion[var_names].to_dict()
@@ -691,16 +963,27 @@ def publish_latest_artifacts():
         "objective_correlation_simulation_data.png",
         "objective_correlation_pareto.png",
         "combined_scatter_pareto.png",
+        "combined_radviz_by_objectives.png",
         "combined_radviz_by_objectives_champion.png",
+        "combined_actual_vs_predicted_5x4.png",
+        "combined_learning_curves_5x4.png",
+        "nfm_scores_histogram.png",
+        "combined_nfm_pairwise_scatter.png",
     ]
     for name in result_files:
         src = RUN_DIR / name
-        if src.exists():
-            shutil.copy2(src, latest_res / name)
+        dst = latest_res / name
+        if src.exists() and src.resolve() != dst.resolve():
+            shutil.copy2(src, dst)
     for name in figure_files:
         src = RUN_FIG / name
-        if src.exists():
-            shutil.copy2(src, latest_fig / name)
+        dst = latest_fig / name
+        if src.exists() and src.resolve() != dst.resolve():
+            shutil.copy2(src, dst)
+    for src in RUN_FIG.glob("radviz_opt_*.png"):
+        dst = latest_fig / src.name
+        if src.resolve() != dst.resolve():
+            shutil.copy2(src, dst)
     (latest_res / "run_stamp.txt").write_text(RUN_STAMP + "\n", encoding="utf-8")
 
 
@@ -750,6 +1033,13 @@ def main():
     fig.savefig(RUN_FIG / "surrogate_test_r2_summary.png", dpi=300)
     plt.close(fig)
 
+    generate_combined_actual_vs_predicted_grid(
+        ALL_PRED_DATA, RUN_FIG / "combined_actual_vs_predicted_5x4.png"
+    )
+    generate_combined_learning_curves_grid(
+        ALL_LC_DATA, RUN_FIG / "combined_learning_curves_5x4.png"
+    )
+
     models_for_opt = trained  # order matches ALL_TARGETS
     run_optimization(models_for_opt, master)
 
@@ -763,9 +1053,11 @@ Methods implemented:
 - Separate Assembly / SJR cleaning with harmonized column names
 - Fixed-depth surrogates (RF depth={RF_DEPTH}, XGB depth={XGB_DEPTH})
 - 5-fold validation curves and hold-out test metrics
+- Combined 5×4 parity and learning-curve grids (RF/XGB)
 - Pearson correlation heatmap on 300 paired simulation rows
 - NSGA-II on discrete DOE levels (pop={POP_SIZE}, gen={N_GEN})
-- Net Flow Method ranking of Pareto designs
+- Net Flow Method ranking, histogram, and pairwise NFM plots
+- RadViz per objective and combined panels with champion marker
 - Champion export with nearest-FEA validation proxy
 
 Surrogate summary:

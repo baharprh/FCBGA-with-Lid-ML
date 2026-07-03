@@ -64,9 +64,22 @@ pip install -r requirements.txt
 python scripts/fcbga_full_codesign_pipeline.py
 ```
 
-Implements: data cleaning, fixed-depth RF/XGB surrogates, validation/learning curves, correlation heatmaps, NSGA-II (pop=150, gen=100), NFM ranking, RadViz, champion export, and nearest-FEA validation proxy.
+Implements: data cleaning, fixed-depth RF/XGB surrogates, validation/learning curves, **5×4 parity and learning-curve grids**, correlation heatmaps, NSGA-II (pop=150, gen=100), NFM ranking (**histogram + pairwise plots**), **RadViz per objective**, champion export, and nearest-FEA validation proxy.
 
 Stable outputs are copied to `results/codesign_latest/` and `figures/codesign_latest/`.
+
+#### Key figures (`figures/codesign_latest/`)
+
+| Figure | Description |
+|--------|-------------|
+| `combined_actual_vs_predicted_5x4.png` | RF/XGB × train/test for all 5 targets |
+| `combined_learning_curves_5x4.png` | RF/XGB × R²/MSE learning curves |
+| `combined_radviz_by_objectives_champion.png` | RadViz panel colored by each objective |
+| `radviz_opt_*.png` | Individual RadViz per objective |
+| `nfm_scores_histogram.png` | Net Flow score distribution |
+| `combined_nfm_pairwise_scatter.png` | NFM rank-bucketed Pareto pairs |
+| `combined_scatter_pareto.png` | Raw Pareto objective pairs |
+| `objective_correlation_*.png` | Simulation + Pareto correlation heatmaps |
 
 ### Surrogate-only (validation plots, no optimization)
 
