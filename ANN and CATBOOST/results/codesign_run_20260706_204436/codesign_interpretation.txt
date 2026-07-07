@@ -1,0 +1,27 @@
+FCBGA with Lid — Full Co-Design Pipeline Summary
+Run: 20260706_204436
+
+Methods implemented:
+- Separate Assembly / SJR cleaning with harmonized column names
+- Improved ANN: scaled numeric inputs, target scaling, early stopping,
+  CV-tuned hidden layers / alpha / learning rate
+- CatBoost (depth=4) surrogates
+- 5-fold validation curves and hold-out test metrics
+- Combined 5×4 parity and learning-curve grids (ANN/CatBoost)
+- Pearson correlation heatmap on 300 paired simulation rows
+- NSGA-II on discrete DOE levels (pop=150, gen=100)
+- Net Flow Method ranking, histogram, and pairwise NFM plots
+- RadViz per objective and combined panels with champion marker
+- Champion export with nearest-FEA validation proxy
+
+Surrogate summary:
+ Dataset                  Target    Model  Train_R2  Test_R2  Train_MSE  Test_MSE Model_Quality
+Assembly              ELK stress CatBoost  0.998399 0.985146   0.007634  0.072315     Very good
+Assembly    Warpage Post UF cure CatBoost  0.997106 0.979596   0.000001  0.000006     Very good
+Assembly Warpage post lid attach CatBoost  0.829056 0.137298   0.000284  0.002158          Weak
+     SJR              DeltaW_BGA CatBoost  0.939045 0.199780   0.000108  0.001476          Weak
+     SJR             DeltaW_bump CatBoost  0.945286 0.476140   0.002243  0.015445          Weak
+
+Weak targets requiring careful discussion: Warpage post lid attach, DeltaW_BGA, DeltaW_bump
+
+Note: Replace validation-proxy with ANSYS re-simulation of the champion for final confirmation.

@@ -1,6 +1,0 @@
-Dataset,Target,Model,Train_R2,Test_R2,Train_MSE,Test_MSE,Model_Quality
-Assembly,ELK stress,XGBoost,0.9983,0.9825,0.00803233,0.08528021,Very good
-Assembly,Warpage Post UF cure,XGBoost,0.9921,0.9716,2.77e-06,8.45e-06,Very good
-Assembly,Warpage post lid attach,Tuned Extra Trees,0.249,0.1767,0.00124639,0.00205899,Weak
-SJR,DeltaW_BGA,Tuned Random Forest,0.7427,0.635,0.01055084,0.01076096,Medium
-SJR,DeltaW_bump,Tuned Random Forest,0.4516,0.3446,0.00097503,0.00120925,Weak

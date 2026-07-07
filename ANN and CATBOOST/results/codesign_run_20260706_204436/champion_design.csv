@@ -1,0 +1,2 @@
+RadViz_X,RadViz_Y,Bulk silicon thickness,Bump solder height,Substrate core thickness,"Substrate core (E, CTE)","UF (E, CTE)",Lid foot width,Lid thickness,Cu-pillar bump solder material,BGA solder material,Obj_ELK stress,Obj_Warpage Post UF cure,Obj_Warpage post lid attach,Obj_DeltaW_BGA,Obj_DeltaW_bump,NetFlow_Score,NetFlow_Rank
+-0.0064347958057379,-0.4285945613339513,0.25,0.06,1.2,3e-06,2e-05,6.0,1.5,SAC405,SAC105,9.439567152451085,-0.01984895640015559,0.09909429762181982,0.07549973058739048,0.013270822741744792,56.10000000000005,1

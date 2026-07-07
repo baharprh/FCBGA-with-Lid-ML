@@ -1,0 +1,146 @@
+Target,Model,ParamName,ParamValue,CV_Train_R2_Mean,CV_Test_R2_Mean
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.0001|0.0001",,0.8129996004365516
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.0001|0.001",,0.8963372957912312
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.001|0.0001",,0.8130310518888735
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.001|0.001",,0.8963846962451223
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.01|0.0001",,0.8128418843189513
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.01|0.001",,0.8977557632906313
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.0001|0.0001",,0.8564968763482576
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.0001|0.001",,0.9176264000447292
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.001|0.0001",,0.8581250753516706
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.001|0.001",,0.9175807767955714
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.01|0.0001",,0.8580236083655522
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.01|0.001",,0.9172882637882941
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.0001|0.0001",,0.8472722866503026
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.0001|0.001",,0.8972202881593795
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.001|0.0001",,0.847367723623838
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.001|0.001",,0.896182491159886
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.01|0.0001",,0.8478405179706048
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.01|0.001",,0.8922825587160041
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.0001|0.0001",,0.8922259267285473
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.0001|0.001",,0.9184907910043227
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.001|0.0001",,0.8925494435844179
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.001|0.001",,0.9194040127794925
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.01|0.0001",,0.8926911013786013
+ELK stress,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.01|0.001",,0.9187872206872154
+ELK stress,CatBoost,depth,2,0.9842567258257631,0.9660581715423993
+ELK stress,CatBoost,depth,3,0.995203039018266,0.9793862703697253
+ELK stress,CatBoost,depth,4,0.9986442855661144,0.9795338105868507
+ELK stress,CatBoost,depth,5,0.9994647054962862,0.9749567711797387
+ELK stress,CatBoost,depth,6,0.9998071365823717,0.9603380619280178
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.0001|0.0001",,0.8157884086628169
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.0001|0.001",,0.9012009935321235
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.001|0.0001",,0.8158427974039816
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.001|0.001",,0.901366697696395
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.01|0.0001",,0.8160993591685148
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.01|0.001",,0.9013788155254179
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.0001|0.0001",,0.78907236159496
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.0001|0.001",,0.8330670913116446
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.001|0.0001",,0.7890267017529164
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.001|0.001",,0.8331420600267816
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.01|0.0001",,0.7885114612151829
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.01|0.001",,0.8340855934890783
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.0001|0.0001",,0.8783632794587536
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.0001|0.001",,0.9398739533381514
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.001|0.0001",,0.8785083370504363
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.001|0.001",,0.9397549271317448
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.01|0.0001",,0.8784783468421782
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.01|0.001",,0.9398588573169218
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.0001|0.0001",,0.8919857168606276
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.0001|0.001",,0.9470090921757024
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.001|0.0001",,0.8920053805662965
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.001|0.001",,0.9470515721917392
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.01|0.0001",,0.8917197041596973
+Warpage Post UF cure,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.01|0.001",,0.9466183948492091
+Warpage Post UF cure,CatBoost,depth,2,0.9848592481419642,0.9738527925020485
+Warpage Post UF cure,CatBoost,depth,3,0.9942424795644726,0.9808425397146641
+Warpage Post UF cure,CatBoost,depth,4,0.997559684326036,0.9770576993124248
+Warpage Post UF cure,CatBoost,depth,5,0.9990411342433058,0.9732327794862827
+Warpage Post UF cure,CatBoost,depth,6,0.9996036439173046,0.96429181385393
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.0001|0.0001",,-0.13209537635115984
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.0001|0.001",,-0.06978917061103133
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.001|0.0001",,-0.1318797069758178
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.001|0.001",,-0.06984069422441856
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.01|0.0001",,-0.13881097579450744
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.01|0.001",,-0.06934597257108015
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.0001|0.0001",,-0.055551319909429256
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.0001|0.001",,-0.042601077954942654
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.001|0.0001",,-0.055855446520957266
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.001|0.001",,-0.0416146188172555
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.01|0.0001",,-0.055649698574350426
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.01|0.001",,-0.04227585765978152
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.0001|0.0001",,0.020307195195244886
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.0001|0.001",,0.026107650904826828
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.001|0.0001",,0.018731951057303676
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.001|0.001",,0.026081270031460546
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.01|0.0001",,0.018415714763571
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.01|0.001",,0.026100609371315486
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.0001|0.0001",,-0.11218211565463902
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.0001|0.001",,-0.14400593665237732
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.001|0.0001",,-0.11218668314404319
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.001|0.001",,-0.14400980327956703
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.01|0.0001",,-0.11243925900282706
+Warpage post lid attach,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.01|0.001",,-0.14399681336016318
+Warpage post lid attach,CatBoost,depth,2,0.48905602680437,-0.06030641336238209
+Warpage post lid attach,CatBoost,depth,3,0.7296579121087086,-0.08743197781487003
+Warpage post lid attach,CatBoost,depth,4,0.860357631519264,-0.10398463672946527
+Warpage post lid attach,CatBoost,depth,5,0.9200378756341332,-0.10628655750752236
+Warpage post lid attach,CatBoost,depth,6,0.9407321571079048,-0.002638737582990225
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.0001|0.0001",,-0.11666813751727054
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.0001|0.001",,-0.07113130311688247
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.001|0.0001",,-0.115431768364554
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.001|0.001",,-0.07325349091740345
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.01|0.0001",,-0.11543269931469151
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.01|0.001",,-0.07202978302243504
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.0001|0.0001",,0.00998656536137823
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.0001|0.001",,0.02441988407526354
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.001|0.0001",,0.011475564132001393
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.001|0.001",,0.010747554807412452
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.01|0.0001",,0.010212066444260603
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.01|0.001",,0.0074614913707476745
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.0001|0.0001",,0.03038170342096269
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.0001|0.001",,0.0358518348070372
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.001|0.0001",,0.03233509983822576
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.001|0.001",,0.03721840478982426
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.01|0.0001",,0.033815112793806515
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.01|0.001",,0.03747673906168429
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.0001|0.0001",,0.08104896337258524
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.0001|0.001",,0.09407175248451058
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.001|0.0001",,0.08167275717824778
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.001|0.001",,0.09410017836684073
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.01|0.0001",,0.08113849900292835
+DeltaW_BGA,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.01|0.001",,0.09412803648537955
+DeltaW_BGA,CatBoost,depth,2,0.6015331404718424,0.0968775239291542
+DeltaW_BGA,CatBoost,depth,3,0.850007338309509,-0.10368707095776478
+DeltaW_BGA,CatBoost,depth,4,0.9538762665559807,-0.033347035013733525
+DeltaW_BGA,CatBoost,depth,5,0.9830344354631986,0.04430066496086216
+DeltaW_BGA,CatBoost,depth,6,0.9914406880932404,0.11389259395423054
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.0001|0.0001",,0.4408972610042037
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.0001|0.001",,0.45027069330271363
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.001|0.0001",,0.4408995841221124
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.001|0.001",,0.4501325479474755
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.01|0.0001",,0.44089900168024376
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(16,)|0.01|0.001",,0.45002138626123134
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.0001|0.0001",,0.4709013947667803
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.0001|0.001",,0.4955495673161973
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.001|0.0001",,0.47111675646019024
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.001|0.001",,0.49596462705788547
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.01|0.0001",,0.4709746911423611
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(32,)|0.01|0.001",,0.49594226717106693
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.0001|0.0001",,0.49735555933907866
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.0001|0.001",,0.478834730388375
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.001|0.0001",,0.49859363144434016
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.001|0.001",,0.4798228834865146
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.01|0.0001",,0.4984941464805959
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(32, 16)|0.01|0.001",,0.48027636467779067
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.0001|0.0001",,0.5596245952181931
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.0001|0.001",,0.5631000037727795
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.001|0.0001",,0.5596801966763689
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.001|0.001",,0.5630919696610314
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.01|0.0001",,0.5603900294601769
+DeltaW_bump,ANN,hidden_layer_sizes|alpha|lr,"(64, 32)|0.01|0.001",,0.5651233944435807
+DeltaW_bump,CatBoost,depth,2,0.788015030959086,0.588357512744899
+DeltaW_bump,CatBoost,depth,3,0.8947972787012841,0.5351463158041223
+DeltaW_bump,CatBoost,depth,4,0.9611542866267723,0.50780097830119
+DeltaW_bump,CatBoost,depth,5,0.9872258385477762,0.5516745236609238
+DeltaW_bump,CatBoost,depth,6,0.9957755531243409,0.5463954125355978
