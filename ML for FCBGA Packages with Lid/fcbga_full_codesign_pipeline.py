@@ -495,11 +495,22 @@ def train_target(df: pd.DataFrame, target: str, dataset: str) -> dict:
     return {"best": best, "candidates": rows, "summary": best_row}
 
 
-def plot_feature_importance(best: dict, target: str, dataset: str):
+def _clean_feature_name(name: str) -> str:
+    """Strip ColumnTransformer prefixes for readable publication labels."""
+    s = str(name)
+    for prefix in ("cat__", "num__", "remainder__", "pre__"):
+        if s.startswith(prefix):
+            s = s[len(prefix):]
+            break
+    return s
+
+
+def plot_feature_importance(best: dict, target: str, dataset: str) -> dict | None:
     """
     Feature importance for the best surrogate.
     CatBoost exposes feature_importances_ directly; for the ANN (MLP) we fall
     back to permutation importance on the hold-out test set.
+    Returns a dict usable by the combined 5-target grid, or None on failure.
     """
     pipe: Pipeline = best["pipeline"]
     reg = pipe.named_steps["regressor"]
@@ -509,7 +520,7 @@ def plot_feature_importance(best: dict, target: str, dataset: str):
     try:
         names = pre.get_feature_names_out()
     except Exception:
-        return
+        return None
 
     if hasattr(reg, "feature_importances_"):
         imp = np.asarray(reg.feature_importances_, dtype=float)
@@ -522,21 +533,125 @@ def plot_feature_importance(best: dict, target: str, dataset: str):
                 n_repeats=10, random_state=SEED, scoring="r2",
             )
         except Exception:
-            return
+            return None
         imp = np.asarray(result.importances_mean, dtype=float)
         names = np.asarray(best["inputs"])
         method = "Permutation importance (ANN)"
 
+    names = np.asarray(names)
     idx = np.argsort(imp)[::-1][: min(10, len(imp))]
+    top_names = [_clean_feature_name(names[i]) for i in idx]
+    top_imp = imp[idx]
+
     fig, ax = plt.subplots(figsize=(8, 5))
-    ax.barh(range(len(idx)), imp[idx][::-1])
+    ax.barh(range(len(idx)), top_imp[::-1], color="steelblue", edgecolor="k", linewidth=0.4)
     ax.set_yticks(range(len(idx)))
-    ax.set_yticklabels([names[i] for i in idx][::-1])
+    ax.set_yticklabels(top_names[::-1])
+    ax.set_xlabel("Importance")
     ax.set_title(f"Feature importance — {target} ({method})")
+    _bold_axis_text(ax, title_size=11, label_size=10, tick_size=8)
     fig.tight_layout()
     safe = target.replace(" ", "_")
     fig.savefig(RUN_FIG / f"fi_{dataset}_{safe}.png", dpi=200)
     plt.close(fig)
+
+    return {
+        "target": target,
+        "dataset": dataset,
+        "method": method,
+        "feature_names": top_names,
+        "importances": top_imp,
+    }
+
+
+def generate_combined_feature_importance_grid(
+    importance_data: list[dict], output_path: Path, top_n: int = 8
+):
+    """Combined feature-importance panels for all five targets (publication grid)."""
+    by_target = {d["target"]: d for d in importance_data}
+    n_targets = len(ALL_TARGETS)
+    nrows, ncols = (3, 2) if n_targets > 3 else (1, n_targets)
+    fig, axes = plt.subplots(nrows, ncols, figsize=(7 * ncols, 3.8 * nrows))
+    axes = np.atleast_1d(axes).ravel()
+    cmap = plt.cm.viridis
+    for i, target in enumerate(ALL_TARGETS):
+        ax = axes[i]
+        entry = by_target.get(target)
+        if entry is None:
+            ax.axis("off")
+            continue
+        names = list(entry["feature_names"][:top_n])
+        vals = np.asarray(entry["importances"][:top_n], dtype=float)
+        # plot most important at top
+        names_r, vals_r = names[::-1], vals[::-1]
+        colors = cmap(np.linspace(0.35, 0.9, len(vals_r)))
+        ax.barh(range(len(vals_r)), vals_r, color=colors, edgecolor="k", linewidth=0.35)
+        ax.set_yticks(range(len(vals_r)))
+        ax.set_yticklabels(names_r, fontsize=8)
+        ax.set_xlabel("Importance")
+        ax.set_title(f"{target}", fontweight="bold")
+        ax.grid(True, axis="x", linestyle="--", alpha=0.4)
+        for label in ax.get_yticklabels() + ax.get_xticklabels():
+            label.set_fontweight("bold")
+        ax.xaxis.label.set_fontweight("bold")
+    for j in range(n_targets, len(axes)):
+        axes[j].axis("off")
+    fig.suptitle(
+        "Feature importance — all five targets (CatBoost)",
+        fontweight="bold",
+        fontsize=14,
+    )
+    fig.tight_layout(rect=[0, 0, 1, 0.96])
+    fig.savefig(output_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved combined feature-importance grid -> {output_path}")
+
+
+def plot_pareto_pairwise_projections(
+    pareto_f: np.ndarray,
+    obj_names: list[str],
+    scores: np.ndarray | None = None,
+    output_path: Path | None = None,
+):
+    """
+    Pairwise objective projections of the Pareto set.
+    Points are colored by NFM net-flow score when provided (viridis).
+    """
+    pairs = list(itertools.combinations(range(len(obj_names)), 2))
+    n_pairs = len(pairs)
+    ncols = 5 if n_pairs > 6 else 3
+    nrows = int(np.ceil(n_pairs / ncols))
+    fig, axes = plt.subplots(nrows, ncols, figsize=(3.6 * ncols, 3.4 * nrows))
+    axes = np.atleast_1d(axes).ravel()
+    color_vals = scores if scores is not None else np.zeros(len(pareto_f))
+    sc_ref = None
+    for ax, (i, j) in zip(axes, pairs):
+        sc_ref = ax.scatter(
+            pareto_f[:, i], pareto_f[:, j],
+            c=color_vals, cmap="viridis", s=28, alpha=0.85, edgecolors="k", linewidths=0.25,
+        )
+        ax.set_xlabel(obj_names[i])
+        ax.set_ylabel(obj_names[j])
+        ax.grid(True, linestyle="--", alpha=0.4)
+        _bold_axis_text(ax, title_size=10, label_size=9, tick_size=8)
+    for k in range(n_pairs, len(axes)):
+        axes[k].axis("off")
+    if scores is not None and sc_ref is not None:
+        cbar = fig.colorbar(sc_ref, ax=list(axes[:n_pairs]), fraction=0.02, pad=0.02)
+        cbar.set_label("NFM net-flow score", fontweight="bold")
+        cbar.ax.yaxis.label.set_fontweight("bold")
+        for t in cbar.ax.get_yticklabels():
+            t.set_fontweight("bold")
+    fig.suptitle(
+        "Pareto-optimal solutions — pairwise objective projections (NSGA-II)",
+        fontweight="bold",
+        fontsize=13,
+    )
+    fig.tight_layout(rect=[0, 0, 0.98, 0.96])
+    out = output_path or (RUN_FIG / "combined_scatter_pareto.png")
+    fig.savefig(out, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved Pareto pairwise projections -> {out}")
 
 
 def plot_corr_heatmap(master: pd.DataFrame):
@@ -568,7 +683,27 @@ def _safe_filename(name: str) -> str:
     return "".join(c if c.isalnum() or c in "-_" else "_" for c in str(name))
 
 
-def _plot_single_actual_vs_predicted(ax, y_true, y_pred, dataset_name_str: str):
+# Distinct colors for train vs test parity panels
+TRAIN_COLOR = "#1f77b4"  # steel blue
+TEST_COLOR = "#ff7f0e"   # orange
+
+
+def _bold_axis_text(ax, title_size: float = 10, label_size: float = 9, tick_size: float = 8):
+    """Bold titles, axis labels, and tick values for publication figures."""
+    ax.title.set_fontweight("bold")
+    ax.title.set_fontsize(title_size)
+    ax.xaxis.label.set_fontweight("bold")
+    ax.xaxis.label.set_fontsize(label_size)
+    ax.yaxis.label.set_fontweight("bold")
+    ax.yaxis.label.set_fontsize(label_size)
+    ax.tick_params(axis="both", labelsize=tick_size)
+    for label in ax.get_xticklabels() + ax.get_yticklabels():
+        label.set_fontweight("bold")
+
+
+def _plot_single_actual_vs_predicted(
+    ax, y_true, y_pred, dataset_name_str: str, color: str = TRAIN_COLOR
+):
     if y_true is None or y_pred is None:
         ax.text(0.5, 0.5, "Data N/A", ha="center", va="center", transform=ax.transAxes)
         return
@@ -579,15 +714,19 @@ def _plot_single_actual_vs_predicted(ax, y_true, y_pred, dataset_name_str: str):
     if len(y_true_clean) == 0:
         ax.text(0.5, 0.5, "No valid data", ha="center", va="center", transform=ax.transAxes)
         return
-    ax.scatter(y_true_clean, y_pred_clean, alpha=0.6, edgecolors="k", s=40)
+    ax.scatter(
+        y_true_clean, y_pred_clean,
+        alpha=0.65, edgecolors="k", s=40, c=color, linewidths=0.4,
+    )
     lo = min(y_true_clean.min(), y_pred_clean.min())
     hi = max(y_true_clean.max(), y_pred_clean.max())
     margin = (hi - lo) * 0.05 if hi > lo else 0.1
     ax.plot([lo - margin, hi + margin], [lo - margin, hi + margin], "r--", lw=1.5)
     ax.set_xlabel("Actual")
     ax.set_ylabel("Predicted")
-    ax.set_title(dataset_name_str, fontsize=10)
+    ax.set_title(dataset_name_str)
     ax.grid(True, linestyle="--", alpha=0.4)
+    _bold_axis_text(ax)
 
 
 def generate_combined_actual_vs_predicted_grid(all_pred_data: list[dict], output_path: Path):
@@ -597,13 +736,13 @@ def generate_combined_actual_vs_predicted_grid(all_pred_data: list[dict], output
     if n_targets == 1:
         axs = axs.reshape(1, -1)
     columns = [
-        ("MLPRegressor", "train", "ANN | Train"),
-        ("CatBoostRegressor", "train", "CatBoost | Train"),
-        ("MLPRegressor", "test", "ANN | Test"),
-        ("CatBoostRegressor", "test", "CatBoost | Test"),
+        ("MLPRegressor", "train", "ANN | Train", TRAIN_COLOR),
+        ("CatBoostRegressor", "train", "CatBoost | Train", TRAIN_COLOR),
+        ("MLPRegressor", "test", "ANN | Test", TEST_COLOR),
+        ("CatBoostRegressor", "test", "CatBoost | Test", TEST_COLOR),
     ]
     for row, target in enumerate(ALL_TARGETS):
-        for col, (model_type, split, col_title) in enumerate(columns):
+        for col, (model_type, split, col_title, color) in enumerate(columns):
             ax = axs[row, col]
             entry = next(
                 (d for d in all_pred_data if d["target_name"] == target and d["model_type"] == model_type),
@@ -614,11 +753,26 @@ def generate_combined_actual_vs_predicted_grid(all_pred_data: list[dict], output
                 continue
             y_true = entry[f"y_{split}_true"]
             y_pred = entry[f"y_{split}_pred"]
-            _plot_single_actual_vs_predicted(ax, y_true, y_pred, col_title)
+            _plot_single_actual_vs_predicted(ax, y_true, y_pred, col_title, color=color)
             if col == 0:
-                ax.set_ylabel(f"{target}\nPredicted", fontsize=9)
-    fig.suptitle("Actual vs Predicted — All Targets (ANN / CatBoost, Train / Test)", fontweight="bold")
-    fig.tight_layout(rect=[0, 0, 1, 0.98])
+                ax.set_ylabel(f"{target}\nPredicted")
+                ax.yaxis.label.set_fontweight("bold")
+                ax.yaxis.label.set_fontsize(9)
+    train_patch = mpatches.Patch(color=TRAIN_COLOR, label="Train")
+    test_patch = mpatches.Patch(color=TEST_COLOR, label="Test")
+    fig.legend(
+        handles=[train_patch, test_patch],
+        loc="upper right",
+        fontsize=10,
+        frameon=True,
+        prop={"weight": "bold"},
+    )
+    fig.suptitle(
+        "Actual vs Predicted — All Targets (ANN / CatBoost, Train / Test)",
+        fontweight="bold",
+        fontsize=14,
+    )
+    fig.tight_layout(rect=[0, 0, 1, 0.97])
     fig.savefig(output_path, dpi=300, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved combined parity grid -> {output_path}")
@@ -663,16 +817,23 @@ def generate_combined_learning_curves_grid(all_lc_data: list[dict], output_path:
             ax.fill_between(train_sizes, tr_m - tr_s, tr_m + tr_s, alpha=0.15, color="darkorange")
             ax.plot(train_sizes, te_m, "o-", color="navy", label="CV", lw=1.5)
             ax.fill_between(train_sizes, te_m - te_s, te_m + te_s, alpha=0.15, color="navy")
-            ax.set_title(col_title, fontsize=10)
+            ax.set_title(col_title)
             ax.set_xlabel("Training examples")
             ax.set_ylabel("R²" if metric_type == "r2" else "MSE")
             ax.grid(True, linestyle="--", alpha=0.4)
             if row == 0 and col == 0:
-                ax.legend(fontsize=8)
+                leg = ax.legend(fontsize=8, prop={"weight": "bold"})
+                for text in leg.get_texts():
+                    text.set_fontweight("bold")
             if col == 0:
-                ax.set_ylabel(f"{target}\n" + ("R²" if metric_type == "r2" else "MSE"), fontsize=9)
-    fig.suptitle("Learning Curves — All Targets (ANN / CatBoost, R² / MSE)", fontweight="bold")
-    fig.tight_layout(rect=[0, 0, 1, 0.98])
+                ax.set_ylabel(f"{target}\n" + ("R²" if metric_type == "r2" else "MSE"))
+            _bold_axis_text(ax)
+    fig.suptitle(
+        "Learning Curves — All Targets (ANN / CatBoost, R² / MSE)",
+        fontweight="bold",
+        fontsize=14,
+    )
+    fig.tight_layout(rect=[0, 0, 1, 0.97])
     fig.savefig(output_path, dpi=300, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved combined learning-curve grid -> {output_path}")
@@ -747,6 +908,16 @@ def plot_nfm_pairwise_combined(
     print(f"Saved NFM pairwise scatter -> {output_path}")
 
 
+def _draw_radviz_objective_labels(ax, anchors: np.ndarray, obj_names: list[str], fontsize: float = 7):
+    """Place bold objective names near each RadViz anchor."""
+    for j, lab in enumerate(obj_names):
+        ax.text(
+            anchors[j, 0] * 1.12, anchors[j, 1] * 1.12, lab,
+            ha="center", va="center", fontsize=fontsize, fontweight="bold",
+            bbox=dict(facecolor="white", edgecolor="none", alpha=0.85, pad=1.5),
+        )
+
+
 def plot_individual_radviz(
     xy: np.ndarray,
     pareto_f: np.ndarray,
@@ -766,18 +937,14 @@ def plot_individual_radviz(
         sc = ax.scatter(xy[:, 0], xy[:, 1], c=pareto_f[:, i], cmap="viridis", s=60, ec="k", alpha=0.7)
         ax.plot(poly_x, poly_y, "--", c="r", lw=1.5)
         ax.scatter(anchors[:, 0], anchors[:, 1], marker="^", c="r", s=100)
-        for j, lab in enumerate(obj_names):
-            ax.text(
-                anchors[j, 0] * 0.85, anchors[j, 1] * 0.85, lab,
-                ha="center", va="center", fontsize=8,
-                bbox=dict(facecolor="white", edgecolor="none", alpha=0.8),
-            )
+        _draw_radviz_objective_labels(ax, anchors, obj_names, fontsize=9)
         if champion_idx is not None and 0 <= champion_idx < len(xy):
             ax.scatter(
                 xy[champion_idx, 0], xy[champion_idx, 1],
-                s=200, facecolors="none", edgecolors="gold", lw=2, label="Champion",
+                s=200, facecolors="none", edgecolors="gold", lw=2, label="NFM champion",
             )
-        ax.set_title(f"RadViz (color by {name})")
+            ax.legend(loc="upper right", fontsize=9, prop={"weight": "bold"})
+        ax.set_title(f"RadViz (color by {name})", fontweight="bold")
         ax.set_aspect("equal")
         plt.colorbar(sc, ax=ax, location="bottom", shrink=0.85, pad=0.12)
         fig.tight_layout()
@@ -929,21 +1096,39 @@ def plot_radviz_panels(
     poly_y = np.append(anchors[:, 1], anchors[0, 1])
 
     nrows, ncols = (2, 3) if n_obj > 3 else (1, n_obj)
-    fig, axes = plt.subplots(nrows, ncols, figsize=(5 * ncols, 5 * nrows))
+    fig, axes = plt.subplots(nrows, ncols, figsize=(5.2 * ncols, 5.2 * nrows))
     axes = np.atleast_1d(axes).ravel()
     for i, name in enumerate(obj_names):
         ax = axes[i]
         sc = ax.scatter(xy[:, 0], xy[:, 1], c=pareto_f[:, i], cmap="viridis", s=40, ec="k", alpha=0.7)
         ax.plot(poly_x, poly_y, "--", c="r", lw=1)
         ax.scatter(anchors[:, 0], anchors[:, 1], marker="^", c="r", s=80)
+        _draw_radviz_objective_labels(ax, anchors, obj_names, fontsize=6.5)
         if champion_idx is not None and 0 <= champion_idx < len(xy):
-            ax.scatter(xy[champion_idx, 0], xy[champion_idx, 1], s=200, facecolors="none", edgecolors="gold", lw=2)
-        ax.set_title(name)
+            ax.scatter(
+                xy[champion_idx, 0], xy[champion_idx, 1],
+                s=220, facecolors="none", edgecolors="gold", lw=2.5, label="NFM champion",
+                zorder=5,
+            )
+            if i == 0:
+                ax.legend(loc="upper right", fontsize=7, prop={"weight": "bold"})
+        ax.set_title(name, fontweight="bold")
         ax.set_aspect("equal")
-        plt.colorbar(sc, ax=ax, shrink=0.8)
+        ax.set_xlim(-1.35, 1.35)
+        ax.set_ylim(-1.35, 1.35)
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            label.set_fontweight("bold")
+        cbar = plt.colorbar(sc, ax=ax, shrink=0.8)
+        for t in cbar.ax.get_yticklabels():
+            t.set_fontweight("bold")
     for j in range(n_obj, len(axes)):
         axes[j].axis("off")
-    fig.tight_layout()
+    fig.suptitle(
+        "RadViz of Pareto-optimal designs (NFM champion highlighted)",
+        fontweight="bold",
+        fontsize=13,
+    )
+    fig.tight_layout(rect=[0, 0, 1, 0.97])
     suffix = "_champion" if champion_idx is not None else ""
     fig.savefig(RUN_FIG / f"combined_radviz_by_objectives{suffix}.png", dpi=300)
     plt.close(fig)
@@ -997,24 +1182,16 @@ def run_optimization(models: list[dict], master: pd.DataFrame):
     ax.set_yticks(range(len(ALL_TARGETS)))
     ax.set_xticklabels(ALL_TARGETS, rotation=35, ha="right")
     ax.set_yticklabels(ALL_TARGETS)
-    plt.colorbar(im, ax=ax)
+    for i in range(len(ALL_TARGETS)):
+        for j in range(len(ALL_TARGETS)):
+            ax.text(j, i, f"{corr.values[i, j]:.2f}", ha="center", va="center", fontsize=9)
+    plt.colorbar(im, ax=ax, label="Pearson r")
     ax.set_title("Objective correlation — Pareto set")
     fig.tight_layout()
     fig.savefig(RUN_FIG / "objective_correlation_pareto.png", dpi=300)
     plt.close(fig)
 
-    # Pairwise Pareto scatter (sample)
-    fig, axes = plt.subplots(2, 3, figsize=(14, 8))
-    pairs = list(itertools.combinations(range(len(ALL_TARGETS)), 2))[:6]
-    for ax, (i, j) in zip(axes.ravel(), pairs):
-        ax.scatter(pareto_F[:, i], pareto_F[:, j], s=20, alpha=0.7)
-        ax.set_xlabel(ALL_TARGETS[i])
-        ax.set_ylabel(ALL_TARGETS[j])
-    fig.tight_layout()
-    fig.savefig(RUN_FIG / "combined_scatter_pareto.png", dpi=300)
-    plt.close(fig)
-
-    # NFM
+    # NFM first so pairwise projections can be colored by score
     scores = net_flow_rank(pareto_F, ALL_TARGETS)
     order = np.argsort(scores)[::-1]
     nfm_df = pareto_df.copy()
@@ -1023,6 +1200,11 @@ def run_optimization(models: list[dict], master: pd.DataFrame):
     nfm_sorted = nfm_df.iloc[order].reset_index(drop=True)
     nfm_sorted.to_excel(RUN_DIR / "nfm_with_designs.xlsx", index=False)
     nfm_sorted.to_csv(RUN_DIR / "nfm_with_designs_sorted.csv", index=False)
+
+    plot_pareto_pairwise_projections(
+        pareto_F, ALL_TARGETS, scores=scores,
+        output_path=RUN_FIG / "combined_scatter_pareto.png",
+    )
 
     champion = nfm_sorted.iloc[0]
     champion.to_frame().T.to_csv(RUN_DIR / "champion_design.csv", index=False)
@@ -1104,6 +1286,7 @@ def publish_latest_artifacts():
         "objective_correlation_simulation_data.png",
         "objective_correlation_pareto.png",
         "combined_scatter_pareto.png",
+        "combined_feature_importance_5targets.png",
         "combined_radviz_by_objectives.png",
         "combined_radviz_by_objectives_champion.png",
         "combined_actual_vs_predicted_5x4.png",
@@ -1203,18 +1386,28 @@ def main():
     trained = []
     summaries = []
     all_candidates = []
+    importance_data: list[dict] = []
     for target in ASSEMBLY_TARGETS:
         out = train_target(assembly, target, "Assembly")
         trained.append(out["best"])
         summaries.append(out["summary"])
         all_candidates.extend(out["candidates"])
-        plot_feature_importance(out["best"], target, "Assembly")
+        fi = plot_feature_importance(out["best"], target, "Assembly")
+        if fi:
+            importance_data.append(fi)
     for target in SJR_TARGETS:
         out = train_target(sjr, target, "SJR")
         trained.append(out["best"])
         summaries.append(out["summary"])
         all_candidates.extend(out["candidates"])
-        plot_feature_importance(out["best"], target, "SJR")
+        fi = plot_feature_importance(out["best"], target, "SJR")
+        if fi:
+            importance_data.append(fi)
+
+    if importance_data:
+        generate_combined_feature_importance_grid(
+            importance_data, RUN_FIG / "combined_feature_importance_5targets.png"
+        )
 
     comparison_df = write_ann_improvement_comparison(all_candidates, RUN_DIR)
 
